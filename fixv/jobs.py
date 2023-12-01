@@ -4,17 +4,18 @@ from typing import Optional
 
 from .log import logger
 
-PATTERN = 'VIRTUAL_ENV=(.+?)(?=")'
-# re.compile(b'(?<=#!)(.+python)(?:\\.exe)?')
-BIN_DIR = 'Scripts'  # Windows
+BIN_DIR = 'Scripts'
 ACT = 'activate.bat'
+
+PATTERN = 'VIRTUAL_ENV=(.+?)(?=")'
+ESC_RE = ('\\', '.', '+', '^', '$', '[', ']')  # may not enough
 
 
 def _check_venv(root: Path):
     return (root / 'pyvenv.cfg').exists() and (root / BIN_DIR).exists()
 
 
-def _get_v_path(root: Path) -> Optional[str]:
+def get_v_path(root: Path) -> Optional[str]:
     # assume `root` is valid
     act = root / BIN_DIR / ACT
 
@@ -32,21 +33,18 @@ def _get_v_path(root: Path) -> Optional[str]:
     return match.group(1)
 
 
-def _chk_and_fix(path: Path, pattern: str):
-    def pp(p: str) -> bytes:
-        return p.replace('\\', '\\\\').replace('.', '\\.').replace('+', '\\*').encode()
-
+def _chk_and_fix(path: Path, pattern: bytes):
     with open(path, 'rb+') as fp:
-        match = re.search(pp(pattern), fp.read())
+        tmp = fp.read()
+
+        match = re.search(pattern, tmp)
         if match is None:
             logger.debug(f'not match: {path}')
             return
 
-        fp.seek(match.end())
-        end_bytes = fp.read()
         fp.seek(match.start())
         fp.write(bytes(path.parent.parent.absolute()))
-        fp.write(end_bytes)
+        fp.write(tmp[match.end() :])
 
         logger.info(f'done: {path}')
 
@@ -56,7 +54,7 @@ def repair(root: Path):
         logger.error(f'invalid env: {root}')
         return
 
-    match = _get_v_path(root)
+    match = get_v_path(root)
     logger.debug(f'{match=}')
     if match is None:
         logger.error(f'invalid env: {root}')
@@ -65,5 +63,11 @@ def repair(root: Path):
         logger.info(f'OK env: {root}')
         return
 
+    def pp(p: str) -> bytes:
+        for esc in ESC_RE:
+            p = p.replace(esc, f'\\{esc}')
+        return p.encode()
+
+    pattern = pp(match)
     for file in (root / BIN_DIR).glob('*'):
-        _chk_and_fix(file, match)
+        _chk_and_fix(file, pattern)
