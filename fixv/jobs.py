@@ -59,7 +59,7 @@ def repair(root: Path):
     if match is None:
         logger.error(f'invalid env: {root}')
         return
-    elif Path(match) == root:
+    elif Path(match) == root.absolute():
         logger.info(f'OK env: {root}')
         return
 
