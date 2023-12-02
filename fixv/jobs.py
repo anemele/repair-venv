@@ -8,7 +8,7 @@ BIN_DIR = 'Scripts'
 ACT = 'activate.bat'
 
 PATTERN = 'VIRTUAL_ENV=(.+?)(?=")'
-ESC_RE = ('\\', '.', '+', '^', '$', '[', ']')  # may not enough
+ESC_RE = '\\.+^$[]'  # may not enough
 
 
 def _check_venv(root: Path):
