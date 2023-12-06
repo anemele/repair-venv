@@ -53,6 +53,9 @@ def _chk_and_fix(path: Path, pattern: bytes):
 
 
 def repair(root: Path):
+    if not root.exists():
+        logger.error(f'not an env: {root}')
+        return
     if not _check_venv(root):
         logger.error(f'invalid env: {root}')
         return
