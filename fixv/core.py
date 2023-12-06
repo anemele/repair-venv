@@ -34,19 +34,22 @@ def get_v_path(root: Path) -> Optional[str]:
 
 
 def _chk_and_fix(path: Path, pattern: bytes):
-    with open(path, 'rb+') as fp:
-        tmp = fp.read()
+    try:
+        with open(path, 'rb+') as fp:
+            tmp = fp.read()
 
-        match = re.search(pattern, tmp)
-        if match is None:
-            logger.debug(f'not match: {path}')
-            return
+            match = re.search(pattern, tmp)
+            if match is None:
+                logger.debug(f'not match: {path}')
+                return
 
-        fp.seek(match.start())
-        fp.write(bytes(path.parent.parent.absolute()))
-        fp.write(tmp[match.end() :])
+            fp.seek(match.start())
+            fp.write(bytes(path.parent.parent.absolute()))
+            fp.write(tmp[match.end() :])
 
         logger.info(f'done: {path}')
+    except PermissionError:
+        logger.info(f'cannot read {path}')
 
 
 def repair(root: Path):
@@ -70,4 +73,5 @@ def repair(root: Path):
 
     pattern = pp(match)
     for file in (root / BIN_DIR).glob('*'):
-        _chk_and_fix(file, pattern)
+        if file.is_file():
+            _chk_and_fix(file, pattern)

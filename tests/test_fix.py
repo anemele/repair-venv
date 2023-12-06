@@ -5,7 +5,7 @@ sys.path.insert(0, os.getcwd())
 
 from pathlib import Path
 
-from fixv.jobs import get_v_path, repair
+from fixv.core import get_v_path, repair
 
 INIT = Path('tests/env/x')
 MOVE = Path('tests/env/z')
