@@ -46,6 +46,7 @@ def _chk_and_fix(path: Path, pattern: bytes):
             fp.seek(match.start())
             fp.write(bytes(path.parent.parent.absolute()))
             fp.write(tmp[match.end() :])
+            fp.truncate()
 
         logger.info(f'done: {path}')
     except PermissionError:
