@@ -3,17 +3,14 @@ so that it works after moved.
 """
 
 import argparse
-import sys
 from pathlib import Path
 
 from .core import repair
 from .log import logger
 
-parser = argparse.ArgumentParser(
-    prog=__package__ if len(sys.argv) == 1 else sys.argv[1], description=__doc__
-)
+parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
 parser.add_argument('root', type=Path, help='venv root path')
-args = parser.parse_args(sys.argv[2:])
+args = parser.parse_args()
 
 logger.debug(f'{args=}')
 root: Path = args.root
